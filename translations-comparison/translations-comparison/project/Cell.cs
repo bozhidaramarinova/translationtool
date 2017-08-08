@@ -9,17 +9,32 @@ namespace translations_comparison.project
     public class Cell
     {
         private string _Content;
+        private int _RowID;
 
         public string Content { get => _Content; set => _Content = value; }
+        public int RowID { get => _RowID; set => _RowID = value; }
+
 
         public Cell()
         {
             Content = "";
+            RowID = 1;
         }
 
         public Cell(String content)
         {
             Content = content;
+        }
+
+        public Cell(int row)
+        {
+            RowID = row;
+        }
+
+        public Cell(String content, int row)
+        {
+            Content = content;
+            RowID = row;
         }
 
         public Cell(Cell cell)
@@ -32,13 +47,7 @@ namespace translations_comparison.project
         {
             if (cell.IsCellEmpty()==false)
             {
-                Cell src = new Cell(this);
-                Cell trgt = new Cell(cell);
-                trgt.Content.Trim();
-                trgt.Content.ToLower();
-                src.Content.Trim();
-                src.Content.ToLower();
-                return src.Equals(trgt);
+                return this.ToString().Equals(cell.ToString());
             }
             else
             {
@@ -49,9 +58,7 @@ namespace translations_comparison.project
         public bool IsCellEmpty()
         {
             Cell src = new Cell(this);
-            src.Content.Trim();
-            src.Content.ToLower();
-            if (src.Content == "" | src.Content == null)
+            if (String.IsNullOrWhiteSpace(src.Content))
             {
                 return true;
             }
@@ -61,14 +68,11 @@ namespace translations_comparison.project
             }
         }
 
-        public bool DiffersInCase(Cell cell)
+        public bool DiffersInCase(string cellcontent)
         {
-            Cell src = new Cell(this);
-            Cell trgt = new Cell(cell);
-            trgt.ToString().Trim().ToLower();
-            src.ToString().Trim().ToLower();
-            src.ToString().ToLower();
-            if (src.Equals(trgt) && !(this.Equals(cell)))
+            Cell src = new Cell(this.ToString().Trim().ToLower());
+            Cell trgt = new Cell(cellcontent.Trim().ToLower());
+            if (src.Equals(trgt) && !(this.ToString().Equals(cellcontent)))
             {
                 return true;
             }
@@ -95,7 +99,7 @@ namespace translations_comparison.project
 
         public override String ToString()
         {
-            return this.Content.ToString();
+            return this.Content;
         }
     }
 }
