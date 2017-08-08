@@ -68,8 +68,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="project\Cell.cs" />
-    <Compile Include="project\Column.cs" />
     <Compile Include="project\ExcelFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

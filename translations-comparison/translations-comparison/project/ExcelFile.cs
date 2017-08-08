@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace translations_comparison.project
@@ -24,6 +26,18 @@ namespace translations_comparison.project
         public int Rows { get => _Rows; set => _Rows = value; }
         public int Columns { get => _Columns; set => _Columns = value; }
 
+        public ExcelFile(ExcelFile excelfile)
+        {
+            App = new Excel.Application()
+            {
+                Visible = true
+            };
+            Workbook = excelfile.Workbook;
+            Worksheet = Workbook.Sheets[1];
+            Range = Worksheet.UsedRange;
+            Rows = Range.Rows.Count;
+            Columns = Range.Columns.Count;
+        }
 
         public ExcelFile(string filepath)
         {
@@ -91,6 +105,18 @@ namespace translations_comparison.project
             file.Columns++;
             Worksheet.Cells[1, file.Columns] = languageCode;
             return file.Columns;
+        }
+
+        public void CleanUp()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            Marshal.ReleaseComObject(Range);
+            Marshal.ReleaseComObject(Worksheet);
+            Workbook.Close();
+            Marshal.ReleaseComObject(Workbook);
+            App.Quit();
+            Marshal.ReleaseComObject(App);
         }
     }
 }
