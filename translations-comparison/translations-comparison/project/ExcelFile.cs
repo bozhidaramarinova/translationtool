@@ -94,5 +94,22 @@ namespace translations_comparison
             App.Quit();
             Marshal.ReleaseComObject(App);
         }
+
+        public void CopyContentFromOneFileIntoAnother(ExcelFile src,ExcelFile tgt)
+        {
+            int i = 0;
+            int j = 0;
+            do
+            {
+                j++;
+                do
+                {
+                    i++;
+                    tgt.Worksheet.Cells[i, j] = src.Worksheet.Cells[i, j];
+                } while (i < tgt.Rows);
+                j++;
+                i = 0;
+            } while (j<tgt.Columns);
+        }
     }
 }
