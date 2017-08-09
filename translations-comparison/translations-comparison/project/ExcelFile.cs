@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
 
-namespace translations_comparison.project
+namespace translations_comparison
 {
-    class ExcelFile
+    public class ExcelFile
     {
         private Excel.Application _App;
         private Excel.Workbook _Workbook;
@@ -17,7 +17,6 @@ namespace translations_comparison.project
         private Excel.Range _Range;
         private int _Rows;
         private int _Columns;
-        private int _NotedColumn;
 
         public Excel.Application App { get => _App; set => _App = value; }
         public Excel.Workbook Workbook { get => _Workbook; set => _Workbook = value; }
@@ -28,15 +27,11 @@ namespace translations_comparison.project
 
         public ExcelFile(ExcelFile excelfile)
         {
-            App = new Excel.Application()
-            {
-                Visible = true
-            };
             Workbook = excelfile.Workbook;
-            Worksheet = Workbook.Sheets[1];
-            Range = Worksheet.UsedRange;
-            Rows = Range.Rows.Count;
-            Columns = Range.Columns.Count;
+            Worksheet = excelfile.Workbook.Sheets[1];
+            Range = excelfile.Workbook.Sheets[1].UsedRange;
+            Rows = excelfile.Workbook.Sheets[1].UsedRange.Rows.Count;
+            Columns = excelfile.Workbook.Sheets[1].UsedRange.Columns.Count;
         }
 
         public ExcelFile(string filepath)
@@ -62,35 +57,16 @@ namespace translations_comparison.project
             return column;
         }
 
-        public bool LanguageAvailable(string languageCode)
+        public int LanguageAvailableInColumnOrNull(string languageCode)
         {
             int i = 0;
             do
             {
-                    i++;
-            } while (!(Worksheet.Cells[1, i].ToString().Trim().toLower().Equals(languageCode.Trim().ToLower())) && i<=Columns);
+                i++;
+            } while (!(Worksheet.Cells[1, i].ToString().Trim().toLower().Equals(languageCode.Trim().ToLower())) && i <= Columns);
 
             if (!(Worksheet.Cells[1, i].ToString().Trim().toLower().Equals(languageCode.Trim().ToLower())))
             {
-                return false;
-            }
-
-            else
-            {
-                return true;
-            }
-
-        }
-
-        public int LanguageAvailableInColumnOrNull(string languageCode)
-        {
-            if (LanguageAvailable(languageCode))
-            {
-                int i = 0;
-                do
-                {
-                    i++;
-                } while (!(Worksheet.Cells[1, i].ToString().Trim().toLower().Equals(languageCode.Trim().ToLower())) && i <= Columns);
                 return i;
             }
 
