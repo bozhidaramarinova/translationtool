@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Reflection;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Diagnostics;
 
 namespace translations_comparison
 {
@@ -24,9 +26,12 @@ namespace translations_comparison
         public Excel.Range Range { get => _Range; set => _Range = value; }
         public int Rows { get => _Rows; set => _Rows = value; }
         public int Columns { get => _Columns; set => _Columns = value; }
+        public Process excelProcess { get; set; }
 
         public ExcelFile(ExcelFile excelfile)
         {
+            App = new Excel.Application();
+            App.Visible = true;
             Workbook = excelfile.Workbook;
             Worksheet = excelfile.Workbook.Sheets[1];
             Range = excelfile.Workbook.Sheets[1].UsedRange;
@@ -36,25 +41,13 @@ namespace translations_comparison
 
         public ExcelFile(string filepath)
         {
-            App = new Excel.Application()
-            {
-                Visible = true
-            };
+            App = new Excel.Application();
+            App.Visible = true;
             Workbook = App.Workbooks.Open(@filepath);
             Worksheet = Workbook.Sheets[1];
             Range = Worksheet.UsedRange;
             Rows = Range.Rows.Count;
             Columns = Range.Columns.Count;
-        }
-
-        public int SearchLanguageInTargetFileOrNull(ExcelFile targetExcelFile, string languageCode)
-        {
-            int column = targetExcelFile.LanguageAvailableInColumnOrNull(languageCode);
-            if (column == 0)
-            {
-                column = CreateLanguageInTargetFile(targetExcelFile,languageCode);
-            }
-            return column;
         }
 
         public int LanguageAvailableInColumnOrNull(string languageCode)
@@ -63,53 +56,95 @@ namespace translations_comparison
             do
             {
                 i++;
-            } while (!(Worksheet.Cells[1, i].ToString().Trim().toLower().Equals(languageCode.Trim().ToLower())) && i <= Columns);
+            } while (i <= Columns && this.CompareValues(Worksheet.Cells[1, i].Value,languageCode) == false);
 
-            if (!(Worksheet.Cells[1, i].ToString().Trim().toLower().Equals(languageCode.Trim().ToLower())))
+
+            if (this.CompareValues(Worksheet.Cells[1, i].Value, languageCode) == false)
             {
-                return i;
+                return 0;
             }
 
             else
             {
-                return 0;
+                return i;
             }
         }
 
-        public int CreateLanguageInTargetFile(ExcelFile file, string languageCode)
+        public int CreateLanguageInColumn(string languageCode)
         {
-            file.Columns++;
-            Worksheet.Cells[1, file.Columns] = languageCode;
-            return file.Columns;
+            this.Columns++;
+            Worksheet.Cells[1, this.Columns].Value = languageCode;
+            return this.Columns;
+        }
+
+        public bool CompareValues(string sourceValue,string valueToCompareWith)
+        {
+            if (!(sourceValue == null || sourceValue == ""))
+            {
+                if (!(valueToCompareWith == null || valueToCompareWith == ""))
+                {
+                    return sourceValue.Trim().ToLower().Equals(valueToCompareWith.Trim().ToLower());
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            else
+            {
+                return false;
+            }
         }
 
         public void CleanUp()
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            Marshal.ReleaseComObject(Range);
-            Marshal.ReleaseComObject(Worksheet);
-            Workbook.Close();
-            Marshal.ReleaseComObject(Workbook);
-            App.Quit();
-            Marshal.ReleaseComObject(App);
+            CloseSheet(this);
         }
 
-        public void CopyContentFromOneFileIntoAnother(ExcelFile src,ExcelFile tgt)
+        public static void CloseSheet(ExcelFile thisExcel)
         {
-            int i = 0;
-            int j = 0;
-            do
+            if (thisExcel.excelProcess != null)
             {
-                j++;
-                do
+                try
                 {
-                    i++;
-                    tgt.Worksheet.Cells[i, j] = src.Worksheet.Cells[i, j];
-                } while (i < tgt.Rows);
-                j++;
-                i = 0;
-            } while (j<tgt.Columns);
+                    thisExcel.excelProcess.Kill();
+                    thisExcel.excelProcess.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Something went wrong: {0}", ex.Source);
+
+                }
+            }
+            else
+            {
+                thisExcel.Workbook.Close(0);
+                thisExcel.App.Quit();
+            }
+            releaseObject(thisExcel.Worksheet);
+            releaseObject(thisExcel.Workbook);
+            releaseObject(thisExcel.App);
+            releaseObject(thisExcel.excelProcess);
+            releaseObject(thisExcel);
+        }
+
+        public static void releaseObject(object obj)
+        {
+            try
+            {
+                Marshal.ReleaseComObject(obj);
+                obj = null;
+            }
+            catch
+            {
+                obj = null;
+            }
+            finally
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
         }
     }
 }
