@@ -60,7 +60,14 @@ namespace translations_comparison
             ExcelFile targetfile = new ExcelFile(File2PathBox.Text);
             string targetDirectory = System.IO.Path.GetDirectoryName(File2PathBox.Text);
 
-            if (!(Languages.Text == "" || Languages.Text==null))
+            LanguageCheck(sourcefile, targetfile);
+
+            System.IO.File.WriteAllText(@targetDirectory + "\\Log.txt", Logbox.Text);
+        }
+
+        private void LanguageCheck(ExcelFile sourcefile, ExcelFile targetfile)
+        {
+            if (!(Languages.Text == "" || Languages.Text == null))
             {
                 int sourcelanguage = sourcefile.LanguageAvailableInColumnOrNull(Languages.Text);
                 int targetlanguage = targetfile.LanguageAvailableInColumnOrNull(Languages.Text);
@@ -91,8 +98,6 @@ namespace translations_comparison
             {
                 Logbox.Text = Logbox.Text + "\nYou haven't selected a language!";
             }
-
-            System.IO.File.WriteAllText(@targetDirectory + "\\Log.txt", Logbox.Text);
         }
 
         private string ColumnIndexToColumnLetter(int colIndex)

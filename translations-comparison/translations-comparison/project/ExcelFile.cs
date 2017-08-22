@@ -19,6 +19,7 @@ namespace translations_comparison
         private Excel.Range _Range;
         private int _Rows;
         private int _Columns;
+        private List<Term> _Terms;
 
         public Excel.Application App { get => _App; set => _App = value; }
         public Excel.Workbook Workbook { get => _Workbook; set => _Workbook = value; }
@@ -27,6 +28,7 @@ namespace translations_comparison
         public int Rows { get => _Rows; set => _Rows = value; }
         public int Columns { get => _Columns; set => _Columns = value; }
         public Process excelProcess { get; set; }
+        public List<Term> Terms { get => _Terms; set => _Terms = value; }
 
         public ExcelFile(ExcelFile excelfile)
         {
@@ -37,6 +39,7 @@ namespace translations_comparison
             Range = excelfile.Workbook.Sheets[1].UsedRange;
             Rows = excelfile.Workbook.Sheets[1].UsedRange.Rows.Count;
             Columns = excelfile.Workbook.Sheets[1].UsedRange.Columns.Count;
+            Terms = excelfile.Terms;
         }
 
         public ExcelFile(string filepath)
@@ -48,6 +51,8 @@ namespace translations_comparison
             Range = Worksheet.UsedRange;
             Rows = Range.Rows.Count;
             Columns = Range.Columns.Count;
+            Terms = new List<Term>();
+            AddTerms();
         }
 
         public int LanguageAvailableInColumnOrNull(string languageCode)
@@ -96,6 +101,20 @@ namespace translations_comparison
                 return false;
             }
         }
+
+        private void AddTerms()
+        {
+            {
+                int i = 1;
+                do
+                {
+                    i++;
+                    Terms.Add(new Term(Worksheet.Cells[i, 1].Value, Worksheet.Cells[i, 2].Value, Worksheet.Cells[i, 3].Value, Worksheet.Cells[i, 4].Value, Worksheet.Cells[i, 5].Value,i));
+                } while (i <= Rows);
+            }
+        }
+
+        //___________________________________________//
 
         public void CleanUp()
         {
