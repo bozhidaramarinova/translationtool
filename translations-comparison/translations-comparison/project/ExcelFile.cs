@@ -8,63 +8,53 @@ using System.Runtime.InteropServices;
 using System.Reflection;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Diagnostics;
+using System.Data;
+using DataSet = System.Data.DataSet;
+using DataTable = System.Data.DataTable;
+using DataRow = System.Data.DataRow;
+using DataColumn = System.Data.DataColumn;
+using ExcelDataReader;
 
 namespace translations_comparison
 {
     public class ExcelFile
     {
-        private Excel.Application _App;
-        private Excel.Workbook _Workbook;
-        private Excel._Worksheet _Worksheet;
-        private Excel.Range _Range;
+        //msdn.microsoft.com/de-de/library/system.data.dataset(v=vs.110).aspx <-- Zur Doku
+        private DataSet _Book;
+        private DataTable _Sheet;
         private int _Rows;
         private int _Columns;
-        private List<Term> _Terms;
+        private List<Term> _TermList;
 
-        public Excel.Application App { get => _App; set => _App = value; }
-        public Excel.Workbook Workbook { get => _Workbook; set => _Workbook = value; }
-        public Excel._Worksheet Worksheet { get => _Worksheet; set => _Worksheet = value; }
-        public Excel.Range Range { get => _Range; set => _Range = value; }
+        public DataSet Book { get => _Book; set => _Book = value; }
         public int Rows { get => _Rows; set => _Rows = value; }
         public int Columns { get => _Columns; set => _Columns = value; }
-        public Process excelProcess { get; set; }
-        public List<Term> Terms { get => _Terms; set => _Terms = value; }
+        public List<Term> TermList { get => _TermList; set => _TermList = value; }
+        public DataTable Sheet { get => _Sheet; set => _Sheet = value; }
 
-        public ExcelFile(ExcelFile excelfile)
+        public ExcelFile(string path)
         {
-            App = new Excel.Application();
-            App.Visible = true;
-            Workbook = excelfile.Workbook;
-            Worksheet = excelfile.Workbook.Sheets[1];
-            Range = excelfile.Workbook.Sheets[1].UsedRange;
-            Rows = excelfile.Workbook.Sheets[1].UsedRange.Rows.Count;
-            Columns = excelfile.Workbook.Sheets[1].UsedRange.Columns.Count;
-            Terms = excelfile.Terms;
+            var stream = File.Open(path, FileMode.Open, FileAccess.Read);
+            var reader = ExcelReaderFactory.CreateReader(stream);
+            Book = reader.AsDataSet();
+            Sheet = new DataTable();
+            Sheet = Book.Tables[0];
+            Rows = Sheet.Rows.Count;
+            Columns = Sheet.Columns.Count;
         }
 
-        public ExcelFile(string filepath)
-        {
-            App = new Excel.Application();
-            App.Visible = true;
-            Workbook = App.Workbooks.Open(@filepath);
-            Worksheet = Workbook.Sheets[1];
-            Range = Worksheet.UsedRange;
-            Rows = Range.Rows.Count;
-            Columns = Range.Columns.Count;
-            Terms = new List<Term>();
-            AddTerms();
-        }
 
         public int LanguageAvailableInColumnOrNull(string languageCode)
         {
             int i = 0;
-            do
-            {
-                i++;
-            } while (i <= Columns && this.CompareValues(Worksheet.Cells[1, i].Value,languageCode) == false);
+
+            while (i <= Columns && Sheet.Columns[i].ColumnName.Equals(languageCode) == false)
+                {
+                    i++;
+                };
 
 
-            if (this.CompareValues(Worksheet.Cells[1, i].Value, languageCode) == false)
+            if ((this.Sheet.Columns[i].ColumnName == null) || (Sheet.Columns[i].ColumnName.Equals(languageCode) == false))
             {
                 return 0;
             }
@@ -77,12 +67,12 @@ namespace translations_comparison
 
         public int CreateLanguageInColumn(string languageCode)
         {
-            this.Columns++;
-            Worksheet.Cells[1, this.Columns].Value = languageCode;
+            Sheet.Columns.Add(languageCode);
+            this.Columns = Sheet.Columns.Count;
             return this.Columns;
         }
 
-        public bool CompareValues(string sourceValue,string valueToCompareWith)
+        public bool CompareValues(string sourceValue, string valueToCompareWith)
         {
             if (!(sourceValue == null || sourceValue == ""))
             {
@@ -105,65 +95,19 @@ namespace translations_comparison
         private void AddTerms()
         {
             {
-                int i = 1;
+                int i = 0;
                 do
                 {
                     i++;
-                    Terms.Add(new Term(Worksheet.Cells[i, 1].Value, Worksheet.Cells[i, 2].Value, Worksheet.Cells[i, 3].Value, Worksheet.Cells[i, 4].Value, Worksheet.Cells[i, 5].Value,i));
-                } while (i <= Rows);
+                    if (!(Sheet.Rows[i][0] == null || Sheet.Rows[i][0].ToString() == ""))
+                    {
+                        Term x = new Term(Sheet.Rows[i][0].ToString(), Sheet.Rows[i][1].ToString(), Sheet.Rows[i][2].ToString(), Sheet.Rows[i][3].ToString(), Sheet.Rows[i][4].ToString(), i);
+                        TermList.Add(x);
+                    }
+                } while (i < Rows);
             }
         }
 
         //___________________________________________//
-
-        public void CleanUp()
-        {
-            CloseSheet(this);
-        }
-
-        public static void CloseSheet(ExcelFile thisExcel)
-        {
-            if (thisExcel.excelProcess != null)
-            {
-                try
-                {
-                    thisExcel.excelProcess.Kill();
-                    thisExcel.excelProcess.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Something went wrong: {0}", ex.Source);
-
-                }
-            }
-            else
-            {
-                thisExcel.Workbook.Close(0);
-                thisExcel.App.Quit();
-            }
-            releaseObject(thisExcel.Worksheet);
-            releaseObject(thisExcel.Workbook);
-            releaseObject(thisExcel.App);
-            releaseObject(thisExcel.excelProcess);
-            releaseObject(thisExcel);
-        }
-
-        public static void releaseObject(object obj)
-        {
-            try
-            {
-                Marshal.ReleaseComObject(obj);
-                obj = null;
-            }
-            catch
-            {
-                obj = null;
-            }
-            finally
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-        }
     }
 }

@@ -14,7 +14,7 @@
         <TextBlock x:Name="F2" HorizontalAlignment="Left" Margin="49,146,0,0" TextWrapping="Wrap" Text="Target Translation File" VerticalAlignment="Top" Width="135" FontFamily="Calibri" Foreground="#000000"/>
         <TextBlock x:Name="F3" HorizontalAlignment="Left" Margin="49,224,0,0" TextWrapping="Wrap" Text="Language (Code)" VerticalAlignment="Top" Width="135" FontFamily="Calibri" Foreground="#000000"/>
 
-        <TextBox x:Name="File1PathBox" IsReadOnly="True" HorizontalAlignment="Left" Height="23" Margin="49,85,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="484" BorderBrush="#FF7CA6B0" Background="#FFE8F3F5" />
+        <TextBox x:Name="File1PathBox" IsReadOnly="True" HorizontalAlignment="Left" Height="23" Margin="49,85,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="484" BorderBrush="#FF7CA6B0" Background="#FFE8F3F5"  TextChanged="File1PathBox_TextChanged"/>
         <TextBox x:Name="File2PathBox" IsReadOnly="True" HorizontalAlignment="Left" Height="23" Margin="49,163,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="484" BorderBrush="#FF7CA6B0" Background="#FFE8F3F5" TextChanged="File2PathBox_TextChanged"/>
         <Button x:Name="File1UploadButton" Click="File1UploadButton_Click" Content="Select file" HorizontalAlignment="Left" Margin="550,85,0,0" VerticalAlignment="Top" Width="75" Height="23" BorderBrush="#FF7CA6B0" Background="#FFE8F3F5" FontFamily="Calibri" Foreground="#FF396772" />
         <Button x:Name="File2UploadButton" Click="File2UploadButton_Click" Content="Select file" HorizontalAlignment="Left" Margin="550,163,0,0" VerticalAlignment="Top" Width="75" Height="23" BorderBrush="#FF7CA6B0" Background="#FFE8F3F5" FontFamily="Calibri" Foreground="#FF396772"/>
@@ -24,7 +24,8 @@
         <TextBlock x:Name="Question" HorizontalAlignment="Left" Margin="243,321,0,0" TextWrapping="Wrap" Text="What would you like to compare?" VerticalAlignment="Top" Width="203" FontFamily="Tw Cen MT Condensed" FontSize="20" Foreground="#FF7CA6B0"/>
         <Button x:Name="Terminology" Click="Terminology_Click" Content="TERMINOLOGIES" HorizontalAlignment="Left" Margin="49,359,0,0" VerticalAlignment="Top" Width="227" Height="23" BorderBrush="#FF7CA6B0" Background="#FFE8F3F5" FontFamily="Calibri" Foreground="#FF396772" FontWeight="Bold" />
         <Button x:Name="TranslationOfUI" Click="TranslationOfUI_Click" Content="TRANSLATIONS OF UI" HorizontalAlignment="Left" Margin="399,359,0,0" VerticalAlignment="Top" Width="199" Height="23" BorderBrush="#FF7CA6B0" Background="#FFE8F3F5" FontFamily="Calibri" Foreground="#FF396772" IsDefault="True" FontWeight="Bold" />
-        <TextBox x:Name="Logbox" HorizontalAlignment="Left" Height="287" Margin="10,404,0,0" TextWrapping="Wrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Text="" VerticalAlignment="Top" Width="662"/>
+
+        <TextBox x:Name="Logbox" HorizontalAlignment="Left" Height="287" Margin="10,404,0,0" TextWrapping="Wrap" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Text="" VerticalAlignment="Top" Width="662" TextChanged="Logbox_TextChanged"/>
 
     </Grid>
 </Window>

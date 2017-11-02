@@ -52,11 +52,94 @@ namespace translations_comparison
             Row = term.Row;
         }
 
-        public bool CompareUniqueTerms(Term targetterm)
+        public int CompareTermWithEachTermFromAList(List<Term> termlist)
         {
-            if (!(targetterm.Equals(this)))
+            List<Term> equalterms = new List<Term>();
+            foreach (Term term in termlist)
             {
-                if (targetterm.Name == this.Name)
+                TermListFunction(equalterms, CompareTermNames(term) == true, false);
+            }
+
+            if (equalterms.Count > 1)
+            {
+                foreach (Term term in equalterms)
+                {
+                    TermListFunction(equalterms, CompareTermLocations(term) == false, true);
+                }
+
+                if (equalterms.Count > 1)
+                {
+                    foreach (Term term in equalterms)
+                    {
+                        TermListFunction(equalterms, CompareTermTypes(term) == false, true);
+                    }
+                    if (equalterms.Count > 1)
+                    {
+                        foreach (Term term in equalterms)
+                        {
+                            TermListFunction(equalterms, CompareTermRoles(term) == false, true);
+                        }
+                        if (equalterms.Count > 1)
+                        {
+                            foreach (Term term in equalterms)
+                            {
+                                TermListFunction(equalterms, CompareTermIDs(term) == false, true);
+                            }
+                            if (equalterms.Count > 1)
+                            {
+                                return 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (equalterms.Count == 1)
+            {
+                return equalterms[0].Row;
+            }
+
+            else
+            {
+                return 0;
+            }
+
+        }
+
+        private void TermListFunction(List<Term> list, bool condition,bool deleting)
+        {
+            if (condition)
+            {
+                if (deleting)
+                {
+                    list.Remove(this);
+                }
+
+                else
+                {
+                    list.Add(this);
+                }
+            }
+        }
+
+        private bool CompareTermNames(Term targetterm)
+        {
+            if (targetterm.Name == this.Name)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool CompareTermLocations(Term targetterm)
+        {
+            if (!(this.Location == null && targetterm.Location == null))
+            {
+                if (targetterm.Location == this.Location)
                 {
                     return true;
                 }
@@ -66,19 +149,66 @@ namespace translations_comparison
                     return false;
                 }
             }
+
             else
             {
                 return true;
             }
         }
 
-        public bool CompareTermWithAList(List<Term> termlist)
+        private bool CompareTermTypes(Term targetterm)
         {
-            foreach (Term term in termlist)
+            if (targetterm.Type == this.Type)
             {
-                if term.Name
+                return true;
+            }
+
+            else
+            {
+                return false;
             }
         }
 
+        private bool CompareTermIDs(Term targetterm)
+        {
+            if (targetterm.ID == this.ID)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        private bool CompareTermRoles(Term targetterm)
+        {
+            if (targetterm.Role == this.Role)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        public List<Term> GroupTermsByNameAndSortThemOut(List<Term> termlist)
+        {
+            List<Term> result = new List<Term>();
+            result.Add(this);
+            termlist.Remove(this);
+            foreach (Term term in termlist)
+            {
+                if (Name.Equals(term.Name))
+                {
+                    result.Add(term);
+                    termlist.Remove(term);
+                }
+            }
+            return result;
+        }
     }
 }
