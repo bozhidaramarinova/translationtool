@@ -1,9 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.IO;
 using Microsoft.Win32;
 using System.Windows.Threading;
 using ExcelDataReader;
@@ -11,7 +11,9 @@ using DataSet = System.Data.DataSet;
 using DataTable = System.Data.DataTable;
 using DataRow = System.Data.DataRow;
 using DataColumn = System.Data.DataColumn;
-using ClosedXML.Excel;
+using System.Xml;
+using System.Xml.Xsl;
+using System.Data;
 
 namespace translations_comparison
 {
@@ -20,7 +22,7 @@ namespace translations_comparison
         public MainWindow()
         {
             InitializeComponent();
-            LogboxUpdate("Terminology Comparison 1.1 \n\n");
+            LogboxUpdate("Terminology Comparison 1.1 \n\n\n\n");
         }
 
         public void File1UploadButton_Click(object sender, RoutedEventArgs e)
@@ -50,6 +52,58 @@ namespace translations_comparison
         public void TranslationOfUI_Click(object sender, RoutedEventArgs e)
         {
 
+            ExcelFile sourcefile = new ExcelFile(File1PathBox.Text, false);
+            ExcelFile targetfile = new ExcelFile(File2PathBox.Text, false);
+
+            string targetDirectory = Path.GetDirectoryName(File2PathBox.Text);
+
+
+            if (!(Languages.Text == "" || Languages.Text == null))
+            {
+                int sourceColumn = sourcefile.LanguageAvailableInColumn(Languages.Text);
+                int targetColumn = targetfile.LanguageAvailableInColumn(Languages.Text);
+                if (!(sourceColumn == 0))
+                {
+                    LogboxUpdate("\n\nLanguage " + Languages.Text + " found in source file in column " + ColumnIndexToColumnLetter(sourceColumn));
+
+                    if (!(targetColumn == 0))
+                    {
+                        LogboxUpdate("\n\nLanguage " + Languages.Text + " found in target file in column " + ColumnIndexToColumnLetter(targetColumn));
+                    }
+                    else
+                    {
+                        LogboxUpdate("\n\nLanguage " + Languages.Text + " was missing in target file and added in column " + ColumnIndexToColumnLetter(targetColumn));
+                    }
+
+
+                    foreach (UI ui in targetfile.UIList)
+                    {
+                        ui.EqualTermRow = ui.CompareUIWithEachTermFromAList(sourcefile.UIList);
+                        if (!(ui.EqualTermRow == 0))
+                        {
+                            targetfile.Sheet.Rows[ui.Row][targetColumn] = sourcefile.Sheet.Rows[ui.EqualTermRow][sourceColumn].ToString();
+                            string test = targetfile.Sheet.Rows[ui.Row][targetColumn].ToString();
+                        }
+                    }
+
+                    targetfile.Rows = targetfile.Sheet.Rows.Count;
+                    targetfile.Columns = targetfile.Sheet.Columns.Count;
+
+                    CreateExcelFile.CreateExcelDocument(targetfile.Book, targetDirectory + "\\newUI.xls");
+                    LogboxUpdate("\n\nNew File created:" + targetDirectory + "\\newUI.xls");
+                }
+                else
+                {
+                    Logbox.Foreground = new SolidColorBrush(Colors.Red);
+                    LogboxUpdate("\n\nLanguage " + Languages.Text + " not found in source file!");
+                }
+            }
+
+            else
+            {
+                LogboxUpdate("\n\nYou haven't selected a language!");
+            }
+
         }
 
         protected void Logbox_TextChanged(object sender, EventArgs e)
@@ -67,39 +121,64 @@ namespace translations_comparison
 
         public void Terminology_Click(object sender, RoutedEventArgs e)
         {
-            ExcelFile sourcefile = new ExcelFile(File1PathBox.Text);
-            ExcelFile targetfile = new ExcelFile(File2PathBox.Text);
+            ExcelFile sourcefile = new ExcelFile(File1PathBox.Text,true);
+            ExcelFile targetfile = new ExcelFile(File2PathBox.Text,true);
 
-            string targetDirectory = System.IO.Path.GetDirectoryName(File2PathBox.Text);
+            string targetDirectory = Path.GetDirectoryName(File2PathBox.Text);
 
-            bool temp = false;
-            do
+
+            if (!(Languages.Text == "" || Languages.Text == null))
             {
-                temp = LanguageCheck(sourcefile, targetfile);
-            } while (temp == false);
-
-            int sourceColumn = sourcefile.LanguageAvailableInColumnOrNull(Languages.Text);
-            int targetColumn = targetfile.LanguageAvailableInColumnOrNull(Languages.Text);
-
-            List<Term> sourceTermsCopy = sourcefile.TermList;
-            List<Term> targetTermsCopy = targetfile.TermList;
-
-            foreach (Term term in sourceTermsCopy)
-            {
-                int termrow = term.CompareTermWithEachTermFromAList(targetTermsCopy);
-                if (!(termrow == 0))
+                int sourceColumn = sourcefile.LanguageAvailableInColumn(Languages.Text);
+                int targetColumn = targetfile.LanguageAvailableInColumn(Languages.Text);
+                if (!(sourceColumn == 0))
                 {
-                    targetfile.Sheet.[termrow, targetColumn].Value = sourcefile.Sheet.[term.Row, sourceColumn].Value.ToString();
+                    LogboxUpdate("\n\nLanguage " + Languages.Text + " found in source file in column " + ColumnIndexToColumnLetter(sourceColumn));
+
+                    if (!(targetColumn == 0))
+                    {
+                        LogboxUpdate("\n\nLanguage " + Languages.Text + " found in target file in column " + ColumnIndexToColumnLetter(targetColumn));
+                    }
+                    else
+                    {
+                        LogboxUpdate("\n\nLanguage " + Languages.Text + " was missing in target file and added in column " + ColumnIndexToColumnLetter(targetColumn));
+                    }
+
+
+                    foreach (Term term in targetfile.TermList)
+                    {
+                        int test1 = term.Row;
+                        test1 = term.Row;
+                        term.EqualTermRow = term.CompareTermWithEachTermFromAList(sourcefile.TermList);
+                        if (!(term.EqualTermRow == 0))
+                        {
+                            targetfile.Sheet.Rows[term.Row][targetColumn-1] = sourcefile.Sheet.Rows[term.EqualTermRow][sourceColumn-1].ToString();
+                            string test = targetfile.Sheet.Rows[term.Row][targetColumn].ToString();
+                        }
+                    }
+
+                    targetfile.Rows = targetfile.Sheet.Rows.Count;
+                    targetfile.Columns = targetfile.Sheet.Columns.Count;
+
+                    CreateExcelFile.CreateExcelDocument(targetfile.Book, targetDirectory+"\\newTerminology.xlsx");
+                    LogboxUpdate("\n\nNew File created:" + targetDirectory + "\\newTerminology.xlsx");
+
+                }
+                else
+                {
+                    Logbox.Foreground = new SolidColorBrush(Colors.Red);
+                    LogboxUpdate("\n\nLanguage " + Languages.Text + " not found in source file!");
                 }
             }
 
-            XLWorkbook wb = new XLWorkbook();
-            wb.Worksheets.Add(targetfile.Sheet, "WorksheetName");
-            wb.SaveAs(File2PathBox.Text);
+            else
+            {
+                LogboxUpdate("\n\nYou haven't selected a language!");
+            }
 
-
-            System.IO.File.WriteAllText(@targetDirectory + "\\Log.txt", Logbox.Text);
         }
+
+
 
         public void PrintRows(DataSet dataSet)
         {
@@ -113,42 +192,6 @@ namespace translations_comparison
                         LogboxUpdate(row[column]);
                     }
                 }
-            }
-        }
-
-        private bool LanguageCheck(ExcelFile sourcefile, ExcelFile targetfile)
-        {
-            if (!(Languages.Text == "" || Languages.Text == null))
-            {
-                int sourcelanguage = sourcefile.LanguageAvailableInColumnOrNull(Languages.Text);
-                int targetlanguage = targetfile.LanguageAvailableInColumnOrNull(Languages.Text);
-                if (!(sourcelanguage == 0))
-                {
-                    LogboxUpdate("\nLanguage " + Languages.Text + " found in source file in column " + ColumnIndexToColumnLetter(sourcelanguage));
-
-                    if (!(targetlanguage == 0))
-                    {
-                        LogboxUpdate("\nLanguage " + Languages.Text + " found in target file in column " + ColumnIndexToColumnLetter(targetlanguage));
-                        return true;
-                    }
-                    else
-                    {
-                        targetlanguage = targetfile.CreateLanguageInColumn(Languages.Text);
-                        LogboxUpdate("\nLanguage " + Languages.Text + " was missing in target file and added in column " + ColumnIndexToColumnLetter(targetlanguage));
-                        return true;
-                    }
-                }
-                else
-                {
-                    Logbox.Foreground = new SolidColorBrush(Colors.Red);
-                    LogboxUpdate("\nLanguage " + Languages.Text + " not found in source file!");
-                    return false;
-                }
-            }
-            else
-            {
-                LogboxUpdate("\nYou haven't selected a language!");
-                return false;
             }
         }
 

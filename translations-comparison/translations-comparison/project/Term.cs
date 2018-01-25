@@ -14,6 +14,7 @@ namespace translations_comparison
         private string _ID;
         private string _Role;
         private int _Row;
+        private int _EqualTermRow;
 
         public string Name { get => _Name; set => _Name = value; }
         public string Location { get => _Location; set => _Location = value; }
@@ -21,6 +22,8 @@ namespace translations_comparison
         public string ID { get => _ID; set => _ID = value; }
         public string Role { get => _Role; set => _Role = value; }
         public int Row { get => _Row; set => _Row = value; }
+        public int EqualTermRow { get => _EqualTermRow; set => _EqualTermRow = value; }
+
 
         public Term(string name, string location, string type, string iD, string role, int row)
         {
@@ -30,6 +33,7 @@ namespace translations_comparison
             ID = iD;
             Role = role;
             Row = row;
+            EqualTermRow=0;
         }
 
         public Term()
@@ -40,6 +44,8 @@ namespace translations_comparison
             ID = "";
             Role = "";
             Row = 2;
+            EqualTermRow = 0;
+
         }
 
         public Term(Term term)
@@ -50,6 +56,7 @@ namespace translations_comparison
             ID = term.ID;
             Role = term.Role;
             Row = term.Row;
+            EqualTermRow=term.EqualTermRow;
         }
 
         public int CompareTermWithEachTermFromAList(List<Term> termlist)
@@ -57,7 +64,7 @@ namespace translations_comparison
             List<Term> equalterms = new List<Term>();
             foreach (Term term in termlist)
             {
-                TermListFunction(equalterms, CompareTermNames(term) == true, false);
+                TermListFunctionFix(equalterms, CompareTermNames(term) == true, false,term);
             }
 
             if (equalterms.Count > 1)
@@ -87,7 +94,7 @@ namespace translations_comparison
                             }
                             if (equalterms.Count > 1)
                             {
-                                return 0;
+                                return equalterms[0].Row;
                             }
                         }
                     }
@@ -118,6 +125,22 @@ namespace translations_comparison
                 else
                 {
                     list.Add(this);
+                }
+            }
+        }
+
+        private void TermListFunctionFix(List<Term> list, bool condition, bool deleting,Term term)
+        {
+            if (condition)
+            {
+                if (deleting)
+                {
+                    list.Remove(term);
+                }
+
+                else
+                {
+                    list.Add(term);
                 }
             }
         }
